@@ -77,6 +77,62 @@ button {
   font-family: inherit;
 }
 
+/* ---------- 触控 / 平板适配 ---------- */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input[type="text"],
+select,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+button,
+.btn,
+.switch,
+label,
+.lv,
+.icon,
+.tabs button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+@media (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+    padding: 11px 18px;
+  }
+
+  .btn.small {
+    min-height: 40px;
+    padding: 9px 14px;
+  }
+
+  .switch {
+    min-height: 48px;
+  }
+
+  .switch input {
+    width: 22px;
+    height: 22px;
+  }
+
+  input[type="text"],
+  select {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
 /* ---------- 通用按钮 ---------- */
 .btn {
   appearance: none;

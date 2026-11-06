@@ -6,11 +6,15 @@ import { BLACK, other } from '@/core/constants'
 import type { Color, GameResult, Move, OpeningMode, Phase, Point } from '@/core/types'
 import { findWinningPoints } from '@/core/rules/analyze'
 import { scanForbiddenPoints } from '@/core/rules/forbidden'
+import { decideAction } from '@/core/ai/decide'
+import { chooseWithRapfi } from '@/core/ai/rapfi'
+import { aiLevelConfig, type AiLevel } from '@/core/ai/levels'
 import { sfx } from '@/audio/sfx'
 import { useSettingsStore } from './settings'
 import { useHistoryStore } from './history'
 
-export type PlayMode = 'local' | 'lan'
+export type PlayMode = 'local' | 'lan' | 'ai'
+export type HumanSideChoice = 'black' | 'white' | 'random'
 
 export const useGameStore = defineStore('game', () => {
   const settings = useSettingsStore()
@@ -32,9 +36,16 @@ export const useGameStore = defineStore('game', () => {
   const forbiddenPoints = ref<Point[]>([])
 
   const playMode = ref<PlayMode>('local')
-  const mySide = ref<0 | 1 | null>(null) // LAN 时本方执子方
+  const mySide = ref<0 | 1 | null>(null) // LAN / 人机时本方执子方
   const lanRoom = ref<string | null>(null)
   const lanConnected = ref(false)
+
+  // 人机对战
+  const aiLevel = ref<AiLevel>('normal')
+  const aiSide = ref<0 | 1 | null>(null)
+  const aiThinking = ref(false)
+  let aiWorker: Worker | null = null
+  let aiToken = 0
 
   const gameOptions = ref<GameOptions | null>(null)
   let actionLog: Action[] = []
@@ -117,7 +128,9 @@ export const useGameStore = defineStore('game', () => {
     gameOptions.value = options
     actionLog = []
     recorded = false
+    aiToken++
     refresh()
+    if (playMode.value === 'ai') void maybeAiMove()
   }
 
   function perform(action: Action, broadcast = true): boolean {
@@ -150,6 +163,7 @@ export const useGameStore = defineStore('game', () => {
       }
     }
     if (broadcast && sendHook && playMode.value === 'lan') sendHook(action)
+    if (broadcast) void maybeAiMove()
     return true
   }
 
@@ -185,7 +199,27 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function undo(): boolean {
-    const ok = engine.value.undo()
+    const g = engine.value
+    if (playMode.value === 'ai') {
+      let pops = 0
+      if (g.undo()) pops++
+      // 若撤销后轮到 AI，再退一手，回到本方行棋
+      if (pops > 0 && g.canUndo()) {
+        const exp = g.getExpectation()
+        if (exp.kind !== 'end' && exp.side !== mySide.value) {
+          g.undo()
+          pops++
+        }
+      }
+      if (pops === 0) return false
+      for (let i = 0; i < pops; i++) actionLog.pop()
+      aiToken++
+      recorded = false
+      refresh()
+      void maybeAiMove()
+      return true
+    }
+    const ok = g.undo()
     if (ok) {
       actionLog.pop()
       recorded = false
@@ -203,6 +237,7 @@ export const useGameStore = defineStore('game', () => {
       if (engine.value.apply(a)) actionLog.push(a)
     }
     recorded = false
+    aiToken++
     refresh()
   }
 
@@ -241,8 +276,112 @@ export const useGameStore = defineStore('game', () => {
     perform(action, false)
   }
 
-  // 初始化派生状态，避免 expectation/canAct 停留在默认值
-  refresh()
+  // ---------- 人机对战 ----------
+
+  function ensureWorker(): Worker | null {
+    if (typeof Worker === 'undefined') return null
+    if (!aiWorker) {
+      aiWorker = new Worker(new URL('../core/ai/ai.worker.ts', import.meta.url), { type: 'module' })
+    }
+    return aiWorker
+  }
+
+  /** 自研 JS 引擎推进：优先在 Worker 中执行，失败则主线程兜底 */
+  function computeJsAction(): Promise<Action | null> {
+    const opts = gameOptions.value
+    const actions = actionLog.slice()
+    const level = aiLevel.value
+    if (!opts) return Promise.resolve(null)
+    const w = ensureWorker()
+    if (w) {
+      return new Promise((resolve) => {
+        const onMsg = (e: MessageEvent) => {
+          w.removeEventListener('message', onMsg)
+          resolve((e.data as Action | null) ?? null)
+        }
+        w.addEventListener('message', onMsg)
+        // 发送纯数据副本：opts 可能来自响应式 ref，Proxy 无法被结构化克隆
+        w.postMessage(JSON.parse(JSON.stringify({ opts, actions, level })))
+      })
+    }
+    const g = new GomokuGame(opts)
+    for (const a of actions) g.apply(a)
+    return Promise.resolve(decideAction(g, aiLevelConfig(level)))
+  }
+
+  /**
+   * 计算 AI 本轮动作：自由落子优先用 Rapfi（WASM），
+   * 开局受限输入与 Rapfi 不可用时回退自研 JS 引擎。
+   */
+  async function computeAiAction(): Promise<Action | null> {
+    const opts = gameOptions.value
+    if (!opts) return null
+    const g = new GomokuGame(opts)
+    for (const a of actionLog) g.apply(a)
+    if (g.getExpectation().kind === 'stone') {
+      const mv = await chooseWithRapfi(g, aiLevelConfig(aiLevel.value))
+      if (mv) return { t: 'place', r: mv.r, c: mv.c }
+    }
+    return computeJsAction()
+  }
+
+  /** 若轮到 AI，则计算并落子；否则立即返回 */
+  async function maybeAiMove(): Promise<void> {
+    if (playMode.value !== 'ai' || aiSide.value === null) return
+    if (phase.value === 'finished') return
+    const exp = engine.value.getExpectation()
+    if (exp.kind === 'end' || exp.side !== aiSide.value) return
+
+    const token = ++aiToken
+    aiThinking.value = true
+    try {
+      const action = await computeAiAction()
+      if (token !== aiToken) return
+      if (action) perform(action, false)
+    } finally {
+      if (token === aiToken) aiThinking.value = false
+    }
+    // AI 落子后若仍轮到 AI（罕见），继续
+    if (token === aiToken) void maybeAiMove()
+  }
+
+  /** 开始人机对战：humanChoice 决定本方执黑/执白/随机 */
+  function startAiGame(level: AiLevel, humanChoice: HumanSideChoice): void {
+    aiLevel.value = level
+    const humanSide: 0 | 1 = humanChoice === 'black' ? 0 : humanChoice === 'white' ? 1 : Math.random() < 0.5 ? 0 : 1
+    playMode.value = 'ai'
+    mySide.value = humanSide
+    aiSide.value = (1 - humanSide) as 0 | 1
+    // side 0 执黑：humanSide 即本方所在方，据此本方执黑或执白
+    newGame({ firstSide: 0 })
+  }
+
+  /** 退出人机，回到本地双人 */
+  function stopAi(): void {
+    aiToken++
+    if (aiWorker) {
+      aiWorker.terminate()
+      aiWorker = null
+    }
+    aiThinking.value = false
+    aiSide.value = null
+    mySide.value = null
+    playMode.value = 'local'
+    newGame()
+  }
+
+  /** 按当前模式重开一局（人机保留难度与本方执子） */
+  function restart(): void {
+    if (playMode.value === 'ai') {
+      const human: HumanSideChoice = mySide.value === 0 ? 'black' : mySide.value === 1 ? 'white' : 'random'
+      startAiGame(aiLevel.value, human)
+    } else {
+      newGame()
+    }
+  }
+
+  // 默认进入人机对战
+  startAiGame(settings.aiLevel, settings.aiHuman)
 
   return {
     engine,
@@ -262,6 +401,9 @@ export const useGameStore = defineStore('game', () => {
     mySide,
     lanRoom,
     lanConnected,
+    aiLevel,
+    aiSide,
+    aiThinking,
     canAct,
     expectedSide,
     mode,
@@ -271,6 +413,9 @@ export const useGameStore = defineStore('game', () => {
     swap2,
     setSendHook,
     newGame,
+    startAiGame,
+    stopAi,
+    restart,
     decideFirstSide,
     perform,
     place,

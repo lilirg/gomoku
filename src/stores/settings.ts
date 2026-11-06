@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import { musicPlayer } from '@/audio/music'
 import { sfx } from '@/audio/sfx'
 import type { OpeningMode } from '@/core/types'
+import type { AiLevel } from '@/core/ai/levels'
 
 const KEY = 'gomoku.settings.v1'
 
@@ -21,6 +22,8 @@ interface Persisted {
   firstChoice: 'black' | 'white' | 'random'
   lanUrl: string
   woodTone: 'classic' | 'walnut' | 'dark'
+  aiLevel: AiLevel
+  aiHuman: 'black' | 'white' | 'random'
 }
 
 function load(): Partial<Persisted> {
@@ -48,6 +51,8 @@ export const useSettingsStore = defineStore('settings', () => {
   const firstChoice = ref<'black' | 'white' | 'random'>(saved.firstChoice ?? 'random')
   const lanUrl = ref(saved.lanUrl ?? '')
   const woodTone = ref<'classic' | 'walnut' | 'dark'>(saved.woodTone ?? 'classic')
+  const aiLevel = ref<AiLevel>(saved.aiLevel ?? 'normal')
+  const aiHuman = ref<'black' | 'white' | 'random'>(saved.aiHuman ?? 'black')
 
   function persist(): void {
     const data: Persisted = {
@@ -64,13 +69,15 @@ export const useSettingsStore = defineStore('settings', () => {
       showForbidden: showForbidden.value,
       firstChoice: firstChoice.value,
       lanUrl: lanUrl.value,
-      woodTone: woodTone.value
+      woodTone: woodTone.value,
+      aiLevel: aiLevel.value,
+      aiHuman: aiHuman.value
     }
     localStorage.setItem(KEY, JSON.stringify(data))
   }
 
   watch(
-    [mode, forbidden, blackName, whiteName, musicTrack, musicVolume, musicMuted, sfxEnabled, autoRotate, showHints, showForbidden, firstChoice, lanUrl, woodTone],
+    [mode, forbidden, blackName, whiteName, musicTrack, musicVolume, musicMuted, sfxEnabled, autoRotate, showHints, showForbidden, firstChoice, lanUrl, woodTone, aiLevel, aiHuman],
     persist
   )
 
@@ -106,6 +113,8 @@ export const useSettingsStore = defineStore('settings', () => {
     firstChoice,
     lanUrl,
     woodTone,
+    aiLevel,
+    aiHuman,
     applyMusic,
     persist
   }

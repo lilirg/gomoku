@@ -19,7 +19,7 @@ const swap2Extend = computed(() => game.mode === 'swap2' && game.swap2.stage ===
 const canPass = computed(() => expect.value.kind === 'stone' && game.phase === 'playing')
 
 function resignBy(): Color {
-  if (game.playMode === 'lan' && game.mySide !== null) return game.engine.colorOf(game.mySide)
+  if ((game.playMode === 'lan' || game.playMode === 'ai') && game.mySide !== null) return game.engine.colorOf(game.mySide)
   return game.turn
 }
 
@@ -36,7 +36,7 @@ function meta() {
     title: `${settings.blackName} vs ${settings.whiteName}`,
     blackName: settings.blackName,
     whiteName: settings.whiteName,
-    event: game.playMode === 'lan' ? '局域网对局' : '本地对局',
+    event: game.playMode === 'lan' ? '局域网对局' : game.playMode === 'ai' ? '人机对局' : '本地对局',
     mode: game.mode,
     forbidden: game.forbiddenEnabled,
     date: new Date().toISOString()
@@ -93,7 +93,8 @@ function doExport(kind: 'sgf' | 'txt' | 'json'): void {
 
       <div class="export">
         <button class="btn small" @click="exportOpen = !exportOpen">导出棋谱 ▾</button>
-        <div v-if="exportOpen" class="export-menu card" @mouseleave="exportOpen = false">
+        <div v-if="exportOpen" class="export-backdrop" @click="exportOpen = false"></div>
+        <div v-if="exportOpen" class="export-menu card">
           <button @click="doExport('sgf')">SGF 棋谱</button>
           <button @click="doExport('txt')">文字记录</button>
           <button @click="doExport('json')">JSON 数据</button>
@@ -129,6 +130,12 @@ function doExport(kind: 'sgf' | 'txt' | 'json'): void {
 
 .export {
   position: relative;
+}
+
+.export-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
 }
 
 .export-menu {

@@ -24,6 +24,9 @@ const promptText = computed(() => {
   const e = expect.value
   if (game.phase === 'finished') return '对局结束'
   if (e.kind === 'end') return ''
+  if (game.playMode === 'ai' && e.side !== game.mySide) {
+    return game.aiThinking ? 'AI 思考中…' : '等待 AI 落子'
+  }
   if (e.kind === 'swap') return '请选择是否交换'
   if (e.kind === 'fifth-mode') return '黑方请选择第 5 子的方式'
   if (e.kind === 'offer') return `请在 9×9 区域内给出 10 个打点（已选 ${selected.value.length}/10）`
@@ -149,6 +152,11 @@ const turnLabel = computed(() => {
 })
 
 const twoPlayerHint = computed(() => {
+  if (game.playMode === 'ai') {
+    if (game.aiSide === null) return '人机对战'
+    const c = colorName(game.engine.colorOf(game.aiSide))
+    return game.aiThinking ? `AI 思考中（执${c}）…` : `人机对战 · AI 执${c}`
+  }
   if (game.playMode !== 'lan') return '本地双人'
   return lan.peerPresent ? `房间 ${lan.roomCode}` : '等待对手…'
 })

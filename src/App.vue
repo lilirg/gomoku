@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import BoardView from '@/components/BoardView.vue'
 import ControlBar from '@/components/ControlBar.vue'
 import PanelGame from '@/components/PanelGame.vue'
+import PanelAi from '@/components/PanelAi.vue'
 import PanelLan from '@/components/PanelLan.vue'
 import PanelHistory from '@/components/PanelHistory.vue'
 import PanelSettings from '@/components/PanelSettings.vue'
@@ -19,8 +20,8 @@ const settings = useSettingsStore()
 const history = useHistoryStore()
 const lan = useLanStore()
 
-type Tab = 'game' | 'lan' | 'history' | 'settings'
-const tab = ref<Tab>('game')
+type Tab = 'game' | 'ai' | 'lan' | 'history' | 'settings'
+const tab = ref<Tab>('ai')
 const dismissed = ref(false)
 
 const showResult = computed(() => game.phase === 'finished' && game.result !== null && !dismissed.value)
@@ -42,7 +43,7 @@ const inLanRoom = computed(() => game.playMode === 'lan' && lan.status === 'in-r
 
 function newGame(): void {
   dismissed.value = false
-  game.newGame()
+  game.restart()
 }
 
 function exportResult(): void {
@@ -105,6 +106,9 @@ onMounted(() => {
       <aside class="side card">
         <nav class="tabs">
           <button :class="{ active: tab === 'game' }" @click="tab = 'game'">对局</button>
+          <button :class="{ active: tab === 'ai' }" @click="tab = 'ai'">
+            人机<span v-if="game.playMode === 'ai'" class="live"></span>
+          </button>
           <button :class="{ active: tab === 'lan' }" @click="tab = 'lan'">
             局域网<span v-if="lan.peerPresent" class="live"></span>
           </button>
@@ -113,6 +117,7 @@ onMounted(() => {
         </nav>
         <div class="tab-body">
           <PanelGame v-if="tab === 'game'" />
+          <PanelAi v-else-if="tab === 'ai'" />
           <PanelLan v-else-if="tab === 'lan'" />
           <PanelHistory v-else-if="tab === 'history'" />
           <PanelSettings v-else />
@@ -233,6 +238,7 @@ onMounted(() => {
   gap: 2px;
   padding: 8px 8px 0;
   border-bottom: 1px solid var(--border);
+  overflow-x: auto;
 }
 
 .tabs button {
@@ -244,6 +250,8 @@ onMounted(() => {
   font-size: 14px;
   cursor: pointer;
   border-radius: 10px 10px 0 0;
+  white-space: nowrap;
+  flex: none;
 }
 
 .tabs button.active {
@@ -326,6 +334,20 @@ onMounted(() => {
   }
   .side {
     min-height: 420px;
+  }
+}
+
+@media (max-width: 560px) {
+  .app {
+    padding: 12px 10px 20px;
+    gap: 12px;
+  }
+  .board-area {
+    min-height: 62vh;
+  }
+  .tabs button {
+    padding: 10px 9px;
+    font-size: 13px;
   }
 }
 </style>

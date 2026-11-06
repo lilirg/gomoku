@@ -51,7 +51,8 @@ export class BoardScene {
   private plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
   private pointer = new THREE.Vector2()
   private hover: Point | null = null
-  private pointerDownAt: { x: number; y: number } | null = null
+  private pointerDown: { id: number; x: number; y: number } | null = null
+  private activePointers = new Set<number>()
   private interactive = true
 
   private matBlack!: THREE.MeshPhysicalMaterial
@@ -111,6 +112,7 @@ export class BoardScene {
     this.renderer.domElement.addEventListener('pointermove', this.onPointerMove)
     this.renderer.domElement.addEventListener('pointerdown', this.onPointerDown)
     this.renderer.domElement.addEventListener('pointerup', this.onPointerUp)
+    this.renderer.domElement.addEventListener('pointercancel', this.onPointerCancel)
     this.renderer.domElement.addEventListener('pointerleave', this.onPointerLeave)
 
     this.animate()
@@ -409,7 +411,18 @@ export class BoardScene {
     return { r, c }
   }
 
+  private clearHover(): void {
+    if (this.hover === null) return
+    this.hover = null
+    this.cb.onHover?.(null)
+  }
+
   private onPointerMove = (e: PointerEvent): void => {
+    // 触屏无悬停：拖动只用于旋转视角，不显示落子预览
+    if (e.pointerType === 'touch') {
+      this.clearHover()
+      return
+    }
     const p = this.pickGrid(e.clientX, e.clientY)
     if ((p?.r ?? -1) !== (this.hover?.r ?? -1) || (p?.c ?? -1) !== (this.hover?.c ?? -1)) {
       this.hover = p
@@ -418,23 +431,39 @@ export class BoardScene {
   }
 
   private onPointerDown = (e: PointerEvent): void => {
-    this.pointerDownAt = { x: e.clientX, y: e.clientY }
+    this.activePointers.add(e.pointerId)
+    if (this.activePointers.size === 1) {
+      this.pointerDown = { id: e.pointerId, x: e.clientX, y: e.clientY }
+    } else {
+      // 多指手势（捏合缩放）：取消落子判定
+      this.pointerDown = null
+      this.clearHover()
+    }
   }
 
   private onPointerUp = (e: PointerEvent): void => {
-    const down = this.pointerDownAt
-    this.pointerDownAt = null
-    if (!down) return
-    const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y)
-    if (moved > 6) return // 拖动旋转，不落子
+    this.activePointers.delete(e.pointerId)
+    const down = this.pointerDown
+    this.pointerDown = null
+    if (!down || down.id !== e.pointerId) return
+    if (this.activePointers.size > 0) return // 仍有多指按下
     if (!this.interactive) return
+    const threshold = e.pointerType === 'touch' ? 12 : 6
+    const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y)
+    if (moved > threshold) return // 拖动旋转，不落子
     const p = this.pickGrid(e.clientX, e.clientY)
     if (p) this.cb.onPlace?.(p.r, p.c)
   }
 
+  private onPointerCancel = (e: PointerEvent): void => {
+    this.activePointers.delete(e.pointerId)
+    this.pointerDown = null
+  }
+
   private onPointerLeave = (): void => {
-    this.hover = null
-    this.cb.onHover?.(null)
+    this.activePointers.clear()
+    this.pointerDown = null
+    this.clearHover()
   }
 
   private resize(): void {
@@ -471,6 +500,7 @@ export class BoardScene {
     this.renderer.domElement.removeEventListener('pointermove', this.onPointerMove)
     this.renderer.domElement.removeEventListener('pointerdown', this.onPointerDown)
     this.renderer.domElement.removeEventListener('pointerup', this.onPointerUp)
+    this.renderer.domElement.removeEventListener('pointercancel', this.onPointerCancel)
     this.renderer.domElement.removeEventListener('pointerleave', this.onPointerLeave)
     this.controls.dispose()
     this.scene.traverse((o) => {

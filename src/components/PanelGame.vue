@@ -49,8 +49,11 @@ function isLast(m: Move): boolean {
         <span>执子</span>
         <b>
           {{ settings.blackName }}（黑）· {{ settings.whiteName }}（白）
-          <template v-if="game.playMode === 'lan' && game.mySide !== null">
+          <template v-if="game.mySide !== null && (game.playMode === 'lan' || game.playMode === 'ai')">
             · 本方执{{ colorName(game.engine.colorOf(game.mySide)) }}
+            <template v-if="game.playMode === 'ai' && game.aiSide !== null">
+              ，AI 执{{ colorName(game.engine.colorOf(game.aiSide)) }}
+            </template>
           </template>
         </b>
       </div>
