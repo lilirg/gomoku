@@ -128,7 +128,8 @@ function neighborEmpties(engine: GomokuGame, radius: number): Point[] {
 
 /**
  * 用 Rapfi 引擎为本轮选择落点。
- * 仅在“自由落子”期望（无区域限制）时使用；不可用或非法时返回 null 以便回退。
+ * 自由落子与受限开局（塔拉山口-10 的区域着法）都会尝试交给 Rapfi；
+ * 引擎不可用、着法非法或落在允许区域之外时返回 null，以便回退自研 JS 引擎。
  */
 export async function chooseWithRapfi(
   engine: GomokuGame,
@@ -137,10 +138,9 @@ export async function chooseWithRapfi(
 ): Promise<Point | null> {
   const exp = engine.getExpectation()
   if (exp.kind !== 'stone') return null
-  // 开局受限区域交给自研 JS 逻辑，避免越过限定范围
-  if (exp.size !== null) return null
 
   const aiColor = exp.color
+  const size = exp.size
   const stones = engine.moves
     .filter((m) => m.kind === 'stone' && m.r >= 0 && m.c >= 0)
     .map((m) => ({ r: m.r, c: m.c, who: m.color === aiColor ? 1 : 2 }))
@@ -156,16 +156,17 @@ export async function chooseWithRapfi(
   })
   if (!best) return null
 
-  // 合法性校验
+  // 合法性校验：必须为空位且在全盘内，受限开局还须落在允许区域内
   if (!engine.board.isEmpty(best.r, best.c)) return null
   if (!withinSquare(best, engine.board.size)) return null
+  if (size !== null && !withinSquare(best, size)) return null
 
   // 弱难度：非关键局面（无立即成五/封堵）时概率性走随机邻近点
   const aiWin = findWinningPoints(engine.board, aiColor)
   const oppWin = findWinningPoints(engine.board, other(aiColor))
   const critical = aiWin.length > 0 || oppWin.length > 0
   if (!critical && cfg.blunder > 0 && rand() < cfg.blunder) {
-    const cand = neighborEmpties(engine, 2)
+    const cand = neighborEmpties(engine, 2).filter((p) => size === null || withinSquare(p, size))
     if (cand.length > 0) return cand[Math.floor(rand() * cand.length)]
   }
   return best

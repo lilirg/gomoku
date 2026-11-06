@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="五子棋">
+  <rect width="64" height="64" rx="13" fill="#d9b271" />
+  <g stroke="#7a5326" stroke-width="1.8" opacity="0.7" stroke-linecap="round">
+    <line x1="12" y1="8" x2="12" y2="56" />
+    <line x1="25" y1="8" x2="25" y2="56" />
+    <line x1="38" y1="8" x2="38" y2="56" />
+    <line x1="51" y1="8" x2="51" y2="56" />
+    <line x1="8" y1="12" x2="56" y2="12" />
+    <line x1="8" y1="25" x2="56" y2="25" />
+    <line x1="8" y1="38" x2="56" y2="38" />
+    <line x1="8" y1="51" x2="56" y2="51" />
+  </g>
+  <circle cx="25" cy="25" r="8.5" fill="#20180f" />
+  <circle cx="25" cy="25" r="8.5" fill="none" stroke="#000" stroke-opacity="0.25" stroke-width="1" />
+  <circle cx="38" cy="38" r="8.5" fill="#f6f4ee" stroke="#c2bbab" stroke-width="1" />
+</svg>
