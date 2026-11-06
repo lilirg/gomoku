@@ -141,6 +141,8 @@ export async function chooseWithRapfi(
 
   const aiColor = exp.color
   const size = exp.size
+  // 区域过小（如首手仅天元）时无搜索价值，直接交给 JS 引擎，避免无谓等待
+  if (size !== null && size <= 1) return null
   const stones = engine.moves
     .filter((m) => m.kind === 'stone' && m.r >= 0 && m.c >= 0)
     .map((m) => ({ r: m.r, c: m.c, who: m.color === aiColor ? 1 : 2 }))
