@@ -1,0 +1,38 @@
+{
+  "name": "gomoku-pro",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "五子棋（连珠）竞赛版 Web 应用 - 中国五子棋竞赛规则(2025) 塔拉山口-10 开局 + 禁手，3D 玉石棋盘 / 局域网对战",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "server": "node server/index.mjs",
+    "dev:all": "concurrently -n web,srv -c cyan,magenta \"vite\" \"node server/index.mjs\"",
+    "tauri": "tauri",
+    "app:dev": "tauri dev",
+    "app:build": "tauri build"
+  },
+  "dependencies": {
+    "pinia": "^2.3.0",
+    "three": "^0.171.0",
+    "vue": "^3.5.13",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.4",
+    "@types/node": "^22.10.2",
+    "@types/three": "^0.171.0",
+    "@types/ws": "^8.5.13",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "concurrently": "^9.1.0",
+    "typescript": "~5.6.3",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8",
+    "vue-tsc": "^2.1.10"
+  }
+}

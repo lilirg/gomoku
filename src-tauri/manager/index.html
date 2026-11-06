@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>五子棋竞赛版 · 服务管理器</title>
+    <style>
+      :root {
+        --bg: #16110c;
+        --panel: #221a12;
+        --panel-2: #2b2116;
+        --line: #3d2f20;
+        --text: #efe4d2;
+        --dim: #a8967c;
+        --gold: #e0b566;
+        --gold-bright: #f4d089;
+        --ok: #7ecb8a;
+        --off: #b06a5a;
+        font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        background:
+          radial-gradient(1200px 600px at 50% -10%, #2c2116 0%, transparent 60%),
+          var(--bg);
+        color: var(--text);
+        padding: 26px 24px 24px;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      header { text-align: center; margin-bottom: 22px; }
+      header h1 {
+        margin: 0;
+        font-size: 20px;
+        letter-spacing: 0.14em;
+        color: var(--gold-bright);
+        font-weight: 600;
+      }
+      header p { margin: 6px 0 0; font-size: 12px; color: var(--dim); letter-spacing: 0.08em; }
+
+      .card {
+        background: linear-gradient(180deg, var(--panel-2), var(--panel));
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 18px 18px 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+      .card .top { display: flex; align-items: center; justify-content: space-between; }
+      .card h2 { margin: 0; font-size: 15px; color: var(--gold); letter-spacing: 0.06em; }
+      .dot {
+        width: 9px; height: 9px; border-radius: 50%;
+        display: inline-block; margin-right: 7px; vertical-align: middle;
+        background: var(--off); box-shadow: 0 0 8px rgba(176, 106, 90, 0.8);
+      }
+      .dot.on { background: var(--ok); box-shadow: 0 0 10px rgba(126, 203, 138, 0.85); }
+      .state { font-size: 13px; color: var(--text); }
+      .desc { font-size: 12px; color: var(--dim); margin: 10px 0 4px; line-height: 1.6; }
+
+      .addr {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; background: rgba(0, 0, 0, 0.25);
+        border: 1px dashed var(--line); border-radius: 10px;
+        padding: 9px 12px; margin-top: 8px; font-size: 13px;
+      }
+      .addr .label { color: var(--dim); font-size: 11px; letter-spacing: 0.06em; }
+      .addr code {
+        font-family: Consolas, "Cascadia Mono", monospace;
+        color: var(--gold-bright); font-size: 13px; word-break: break-all;
+      }
+      .addr button {
+        background: none; border: 1px solid var(--line); color: var(--dim);
+        border-radius: 7px; padding: 3px 9px; font-size: 11px; cursor: pointer;
+      }
+      .addr button:hover { color: var(--gold-bright); border-color: var(--gold); }
+
+      .actions { display: flex; gap: 10px; margin-top: 14px; }
+      button.btn {
+        flex: 1; cursor: pointer; border-radius: 10px; padding: 11px 14px;
+        font-size: 13px; letter-spacing: 0.06em; border: 1px solid var(--line);
+        background: var(--panel-2); color: var(--text); transition: 0.15s;
+      }
+      button.btn:hover { border-color: var(--gold); color: var(--gold-bright); }
+      button.btn.primary {
+        background: linear-gradient(180deg, #d7ad5f, #b98c3f);
+        border-color: #b98c3f; color: #221a12; font-weight: 600;
+      }
+      button.btn.primary:hover { filter: brightness(1.07); }
+      button.btn.danger { color: #e8b0a2; border-color: #6a4136; }
+      button.btn.danger:hover { color: #fff; border-color: #b06a5a; background: #4a2c24; }
+      button.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+      footer { text-align: center; font-size: 11px; color: var(--dim); margin-top: 6px; line-height: 1.7; }
+      .hint { text-align: center; font-size: 12px; color: var(--off); margin-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>五子棋竞赛版</h1>
+      <p>本地服务管理器 · 塔拉山口-10 开局 + 禁手</p>
+    </header>
+
+    <div id="fallback" class="hint" style="display: none">
+      未检测到 Tauri 运行时，请在安装后的应用中打开本页面。
+    </div>
+
+    <main id="app" style="display: none">
+      <section class="card">
+        <div class="top">
+          <h2>Web 游戏服务</h2>
+          <span class="state"><span id="httpDot" class="dot"></span><span id="httpState">检测中…</span></span>
+        </div>
+        <p class="desc">在本机或局域网浏览器中打开以进行对局，服务随应用自动启动。</p>
+        <div class="addr">
+          <div>
+            <div class="label">本机访问</div>
+            <code id="httpLocal">—</code>
+          </div>
+          <button id="openLocal">打开浏览器</button>
+        </div>
+        <div class="addr">
+          <div>
+            <div class="label">局域网访问（其他设备）</div>
+            <code id="httpLan">—</code>
+          </div>
+          <button id="copyHttp">复制</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="top">
+          <h2>局域网对战服务</h2>
+          <span class="state"><span id="lanDot" class="dot"></span><span id="lanState">检测中…</span></span>
+        </div>
+        <p class="desc">房间与走子同步的 WebSocket 服务（端口 8787），可随时启动 / 停止。</p>
+        <div class="addr">
+          <div>
+            <div class="label">局域网对战地址（其他设备）</div>
+            <code id="lanAddr">—</code>
+          </div>
+          <button id="copyLan">复制</button>
+        </div>
+        <div class="actions">
+          <button id="startBtn" class="btn primary">启动对战服务</button>
+          <button id="stopBtn" class="btn danger">停止对战服务</button>
+        </div>
+      </section>
+    </main>
+
+    <footer id="footer" style="display: none">
+      端口：Web 8080 · 对战 8787<br />同一局域网的其他设备访问上方局域网地址即可加入对局。
+    </footer>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const tauri = window.__TAURI__;
+
+      function setDot(el, on) {
+        el.className = "dot" + (on ? " on" : "");
+      }
+
+      function render(st) {
+        const httpOn = st.httpRunning;
+        const lanOn = st.lanRunning;
+        setDot($("httpDot"), httpOn);
+        $("httpState").textContent = httpOn ? "运行中" : "未运行";
+        setDot($("lanDot"), lanOn);
+        $("lanState").textContent = lanOn ? "运行中" : "已停止";
+
+        const local = `http://localhost:${st.httpPort}`;
+        const ip = (st.addresses && st.addresses[0]) || "localhost";
+        $("httpLocal").textContent = local;
+        $("httpLan").textContent = `http://${ip}:${st.httpPort}`;
+        $("lanAddr").textContent = `ws://${ip}:${st.lanPort}`;
+
+        $("startBtn").disabled = lanOn;
+        $("stopBtn").disabled = !lanOn;
+        window.__httpLocal = local;
+      }
+
+      async function refresh() {
+        try {
+          const st = await tauri.core.invoke("get_status");
+          render(st);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      async function copyText(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          /* ignore */
+        }
+      }
+
+      async function main() {
+        if (!tauri) {
+          $("fallback").style.display = "block";
+          return;
+        }
+        $("app").style.display = "block";
+        $("footer").style.display = "block";
+
+        $("startBtn").addEventListener("click", async () => {
+          $("startBtn").disabled = true;
+          try {
+            render(await tauri.core.invoke("start_lan"));
+          } catch (e) {
+            alert("启动失败：" + e);
+            refresh();
+          }
+        });
+        $("stopBtn").addEventListener("click", async () => {
+          $("stopBtn").disabled = true;
+          try {
+            render(await tauri.core.invoke("stop_lan"));
+          } catch (e) {
+            alert("停止失败：" + e);
+            refresh();
+          }
+        });
+        $("openLocal").addEventListener("click", () => {
+          tauri.core.invoke("open_browser", { url: window.__httpLocal || "http://localhost:8080" });
+        });
+        $("copyHttp").addEventListener("click", () => copyText($("httpLan").textContent));
+        $("copyLan").addEventListener("click", () => copyText($("lanAddr").textContent));
+
+        await tauri.event.listen("lan-status", (e) => render(e.payload));
+        await refresh();
+      }
+
+      window.addEventListener("DOMContentLoaded", main);
+    </script>
+  </body>
+</html>

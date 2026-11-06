@@ -1,0 +1,63 @@
+- generic [ref=f1e3]:
+  - banner [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]: 弈
+      - generic [ref=f1e7]:
+        - heading "五子棋 · 竞赛版" [level=1] [ref=f1e8]
+        - paragraph [ref=f1e9]: 中国五子棋竞赛规则（2025）· 塔拉山口-10 · 黑方禁手
+    - generic [ref=f1e10]:
+      - generic [ref=f1e11]:
+        - generic [ref=f1e12]: 总 0
+        - generic [ref=f1e13]: 黑 0
+        - generic [ref=f1e14]: 白 0
+        - generic [ref=f1e15]: 和 0
+      - button "新对局" [ref=f1e16] [cursor=pointer]
+  - main [ref=f1e17]:
+    - generic [ref=f1e18]:
+      - generic [ref=f1e19]:
+        - generic:
+          - generic: 黑方行棋
+          - generic: 本地双人
+        - generic: 最后一手 —
+        - generic: 黑方落子，限 1×1
+        - generic [ref=f1e22]:
+          - button "⤢" [ref=f1e23] [cursor=pointer]
+          - button "▣" [ref=f1e24] [cursor=pointer]
+          - button "↻" [ref=f1e25] [cursor=pointer]
+      - generic [ref=f1e26]:
+        - generic [ref=f1e27]: 请黑方落子（限 1×1）
+        - generic [ref=f1e29]:
+          - button "悔棋" [disabled] [ref=f1e30]
+          - button "放弃行棋" [disabled] [ref=f1e31]
+          - button "认输" [ref=f1e32] [cursor=pointer]
+          - button "导出棋谱 ▾" [ref=f1e34] [cursor=pointer]
+    - complementary [ref=f1e35]:
+      - navigation [ref=f1e36]:
+        - button "对局" [ref=f1e37] [cursor=pointer]
+        - button "局域网" [ref=f1e38] [cursor=pointer]
+        - button "历史" [ref=f1e39] [cursor=pointer]
+        - button "设置" [ref=f1e40] [cursor=pointer]
+      - generic [ref=f1e42]:
+        - generic [ref=f1e43]:
+          - heading "对局" [level=3] [ref=f1e44]
+          - generic [ref=f1e45]:
+            - generic [ref=f1e46]: 规则
+            - generic [ref=f1e47]: 中国五子棋竞赛规则（2025）
+          - generic [ref=f1e48]:
+            - generic [ref=f1e49]: 开局
+            - generic [ref=f1e50]: 塔拉山口-10 开局
+          - generic [ref=f1e51]:
+            - generic [ref=f1e52]: 禁手
+            - generic [ref=f1e53]: 黑方有禁手
+          - generic [ref=f1e54]:
+            - generic [ref=f1e55]: 猜先
+            - generic [ref=f1e56]: 随机猜先
+          - generic [ref=f1e57]:
+            - generic [ref=f1e58]: 执子
+            - generic [ref=f1e59]: 黑方（黑）· 白方（白）
+        - generic [ref=f1e60]:
+          - generic [ref=f1e61]:
+            - heading "着法记录" [level=3] [ref=f1e62]
+            - generic [ref=f1e63]: 共 0 着
+          - list [ref=f1e64]:
+            - listitem [ref=f1e65]: 尚无着法

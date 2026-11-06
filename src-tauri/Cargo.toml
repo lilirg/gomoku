@@ -1,0 +1,33 @@
+[package]
+name = "gomoku-manager"
+version = "1.0.0"
+description = "五子棋竞赛版 · 本地服务管理器"
+authors = ["Gomoku Pro"]
+edition = "2021"
+
+[lib]
+name = "gomoku_manager_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "sync", "time"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+axum = { version = "0.7", features = ["ws"] }
+futures-util = "0.3"
+rust-embed = "8"
+mime_guess = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rand = "0.8"
+local-ip-address = "0.6"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

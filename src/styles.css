@@ -1,0 +1,227 @@
+:root {
+  --bg-0: #0e0b08;
+  --bg-1: #16110b;
+  --bg-2: #1f1810;
+  --panel: rgba(28, 21, 13, 0.82);
+  --panel-solid: #1c150d;
+  --border: rgba(226, 193, 136, 0.16);
+  --border-strong: rgba(226, 193, 136, 0.32);
+  --gold: #d8ab5f;
+  --gold-bright: #f0cd8c;
+  --gold-deep: #a87c34;
+  --text: #f3ead9;
+  --text-dim: #c6b391;
+  --text-faint: #8f7c5c;
+  --jade: #6fc7a3;
+  --danger: #e2604f;
+
+  --radius: 14px;
+  --radius-sm: 10px;
+
+  --font-display: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
+  --font-body: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--text);
+  background:
+    radial-gradient(1200px 800px at 78% -10%, rgba(120, 82, 34, 0.28), transparent 60%),
+    radial-gradient(900px 700px at 8% 110%, rgba(52, 74, 62, 0.22), transparent 60%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-0) 70%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 细木纹氛围层 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: repeating-linear-gradient(
+    92deg,
+    rgba(255, 226, 170, 0.5) 0px,
+    rgba(255, 226, 170, 0) 2px,
+    rgba(0, 0, 0, 0.35) 5px,
+    rgba(0, 0, 0, 0) 7px
+  );
+  mix-blend-mode: overlay;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* ---------- 通用按钮 ---------- */
+.btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(60, 46, 28, 0.9), rgba(34, 26, 16, 0.9));
+  color: var(--text);
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.08s, color 0.15s;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: linear-gradient(180deg, rgba(78, 60, 34, 0.95), rgba(44, 33, 19, 0.95));
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.btn.primary {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold-deep));
+  color: #221704;
+  border-color: rgba(255, 226, 170, 0.5);
+  font-weight: 600;
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #f6d79a, #b9893d);
+}
+
+.btn.danger {
+  color: #ffd9d2;
+  border-color: rgba(226, 96, 79, 0.4);
+}
+
+.btn.danger:hover:not(:disabled) {
+  background: rgba(120, 42, 32, 0.9);
+  border-color: rgba(226, 96, 79, 0.7);
+}
+
+.btn.small {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.btn.ghost {
+  background: transparent;
+}
+
+/* ---------- 面板/卡片 ---------- */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(10px);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field > label {
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+
+input[type="text"],
+select {
+  appearance: none;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(12, 9, 6, 0.7);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+input[type="text"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--border-strong);
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--gold);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(12, 9, 6, 0.4);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.switch input {
+  accent-color: var(--gold);
+  width: 18px;
+  height: 18px;
+}
+
+.muted {
+  color: var(--text-dim);
+}
+
+.faint {
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(168, 124, 52, 0.4);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}

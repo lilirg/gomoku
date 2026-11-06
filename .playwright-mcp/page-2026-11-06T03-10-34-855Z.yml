@@ -1,0 +1,60 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: 弈
+      - generic [ref=e7]:
+        - heading "五子棋 · 竞赛版" [level=1] [ref=e8]
+        - paragraph [ref=e9]: 中国五子棋竞赛规则（2025）· 塔拉山口-10 · 黑方禁手
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e12]: 总 0
+        - generic [ref=e13]: 黑 0
+        - generic [ref=e14]: 白 0
+        - generic [ref=e15]: 和 0
+      - button "新对局" [ref=e16] [cursor=pointer]
+  - main [ref=e17]:
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - generic:
+          - generic: 黑方行棋
+          - generic: 本地双人
+        - generic: 最后一手 —
+        - generic [ref=e22]:
+          - button "⤢" [ref=e23] [cursor=pointer]
+          - button "▣" [ref=e24] [cursor=pointer]
+          - button "↻" [ref=e25] [cursor=pointer]
+      - generic [ref=e27]:
+        - button "悔棋" [disabled] [ref=e28]
+        - button "放弃行棋" [disabled] [ref=e29]
+        - button "认输" [ref=e30] [cursor=pointer]
+        - button "导出棋谱 ▾" [ref=e32] [cursor=pointer]
+    - complementary [ref=e33]:
+      - navigation [ref=e34]:
+        - button "对局" [ref=e35] [cursor=pointer]
+        - button "局域网" [ref=e36] [cursor=pointer]
+        - button "历史" [ref=e37] [cursor=pointer]
+        - button "设置" [ref=e38] [cursor=pointer]
+      - generic [ref=e40]:
+        - generic [ref=e41]:
+          - heading "对局" [level=3] [ref=e42]
+          - generic [ref=e43]:
+            - generic [ref=e44]: 规则
+            - generic [ref=e45]: 中国五子棋竞赛规则（2025）
+          - generic [ref=e46]:
+            - generic [ref=e47]: 开局
+            - generic [ref=e48]: 塔拉山口-10 开局
+          - generic [ref=e49]:
+            - generic [ref=e50]: 禁手
+            - generic [ref=e51]: 黑方有禁手
+          - generic [ref=e52]:
+            - generic [ref=e53]: 猜先
+            - generic [ref=e54]: 随机猜先
+          - generic [ref=e55]:
+            - generic [ref=e56]: 执子
+            - generic [ref=e57]: 黑方（黑）· 白方（白）
+        - generic [ref=e58]:
+          - generic [ref=e59]:
+            - heading "着法记录" [level=3] [ref=e60]
+            - generic [ref=e61]: 共 0 着
+          - list [ref=e62]:
+            - listitem [ref=e63]: 尚无着法
