@@ -191,11 +191,12 @@ label,
 }
 
 /* ---------- 面板/卡片 ---------- */
+/* 注意：.card 会作为棋盘画布的祖先容器，禁用 backdrop-filter 以免
+   WebView2 下把内含的 WebGL 画布强制进独立渲染面而导致画布闪黑/闪烁 */
 .card {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  backdrop-filter: blur(10px);
 }
 
 .field {

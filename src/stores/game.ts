@@ -47,6 +47,12 @@ export const useGameStore = defineStore('game', () => {
   let aiWorker: Worker | null = null
   let aiToken = 0
 
+  /** 作废进行中的 AI 计算并复位思考态（重开/悔棋/退出时调用） */
+  function cancelAi(): void {
+    aiToken++
+    aiThinking.value = false
+  }
+
   const gameOptions = ref<GameOptions | null>(null)
   let actionLog: Action[] = []
 
@@ -128,7 +134,7 @@ export const useGameStore = defineStore('game', () => {
     gameOptions.value = options
     actionLog = []
     recorded = false
-    aiToken++
+    cancelAi()
     refresh()
     if (playMode.value === 'ai') void maybeAiMove()
   }
@@ -213,7 +219,7 @@ export const useGameStore = defineStore('game', () => {
       }
       if (pops === 0) return false
       for (let i = 0; i < pops; i++) actionLog.pop()
-      aiToken++
+      cancelAi()
       recorded = false
       refresh()
       void maybeAiMove()
@@ -237,7 +243,7 @@ export const useGameStore = defineStore('game', () => {
       if (engine.value.apply(a)) actionLog.push(a)
     }
     recorded = false
-    aiToken++
+    cancelAi()
     refresh()
   }
 
@@ -294,14 +300,32 @@ export const useGameStore = defineStore('game', () => {
     if (!opts) return Promise.resolve(null)
     const w = ensureWorker()
     if (w) {
+      const worker: Worker = w
       return new Promise((resolve) => {
-        const onMsg = (e: MessageEvent) => {
-          w.removeEventListener('message', onMsg)
-          resolve((e.data as Action | null) ?? null)
+        let settled = false
+        const timer = setTimeout(() => finish(null), 15000)
+        function finish(a: Action | null): void {
+          if (settled) return
+          settled = true
+          clearTimeout(timer)
+          worker.removeEventListener('message', onMsg)
+          worker.removeEventListener('error', onErr)
+          resolve(a)
         }
-        w.addEventListener('message', onMsg)
+        const onMsg = (e: MessageEvent) => finish((e.data as Action | null) ?? null)
+        const onErr = () => {
+          aiWorker = null
+          try {
+            worker.terminate()
+          } catch {
+            /* ignore */
+          }
+          finish(null)
+        }
+        worker.addEventListener('message', onMsg)
+        worker.addEventListener('error', onErr)
         // 发送纯数据副本：opts 可能来自响应式 ref，Proxy 无法被结构化克隆
-        w.postMessage(JSON.parse(JSON.stringify({ opts, actions, level })))
+        worker.postMessage(JSON.parse(JSON.stringify({ opts, actions, level })))
       })
     }
     const g = new GomokuGame(opts)
@@ -334,15 +358,16 @@ export const useGameStore = defineStore('game', () => {
 
     const token = ++aiToken
     aiThinking.value = true
+    let applied = false
     try {
       const action = await computeAiAction()
       if (token !== aiToken) return
-      if (action) perform(action, false)
+      if (action) applied = perform(action, false)
     } finally {
       if (token === aiToken) aiThinking.value = false
     }
-    // AI 落子后若仍轮到 AI（罕见），继续
-    if (token === aiToken) void maybeAiMove()
+    // 仅在确实落子且仍轮到 AI（罕见）时继续，避免无效动作导致死循环
+    if (token === aiToken && applied) void maybeAiMove()
   }
 
   /** 开始人机对战：humanChoice 决定本方执黑/执白/随机 */
@@ -358,12 +383,11 @@ export const useGameStore = defineStore('game', () => {
 
   /** 退出人机，回到本地双人 */
   function stopAi(): void {
-    aiToken++
+    cancelAi()
     if (aiWorker) {
       aiWorker.terminate()
       aiWorker = null
     }
-    aiThinking.value = false
     aiSide.value = null
     mySide.value = null
     playMode.value = 'local'

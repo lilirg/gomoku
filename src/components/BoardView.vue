@@ -221,6 +221,8 @@ const blackTurn = computed(() => game.turn === BLACK)
 .board-canvas {
   position: absolute;
   inset: 0;
+  /* 独立合成层：避免相邻 DOM 重绘时把画布一起重栅格化（WebView2 闪黑） */
+  transform: translateZ(0);
 }
 .overlay {
   position: absolute;
@@ -259,9 +261,8 @@ const blackTurn = computed(() => game.turn === BLACK)
   border-radius: 999px;
   font-size: 14px;
   color: #f3ead9;
-  background: rgba(24, 18, 12, 0.72);
+  background: rgba(24, 18, 12, 0.87);
   border: 1px solid rgba(255, 230, 180, 0.16);
-  backdrop-filter: blur(6px);
 }
 .pill.subtle {
   font-size: 12px;
@@ -298,7 +299,7 @@ const blackTurn = computed(() => game.turn === BLACK)
   height: 38px;
   border-radius: 10px;
   border: 1px solid rgba(255, 230, 180, 0.18);
-  background: rgba(24, 18, 12, 0.72);
+  background: rgba(24, 18, 12, 0.87);
   color: #f0e2c6;
   font-size: 16px;
   cursor: pointer;

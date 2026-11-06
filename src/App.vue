@@ -281,8 +281,7 @@ onMounted(() => {
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(6, 4, 2, 0.66);
-  backdrop-filter: blur(4px);
+  background: rgba(6, 4, 2, 0.8);
   z-index: 50;
 }
 
